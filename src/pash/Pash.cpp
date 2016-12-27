@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 /*******************************************************
  * NAME: Pash.c
@@ -10,6 +11,8 @@ LICENSE.TXT for details.
  *
  * AUTHOR: Cristian Coarfa (coarfa@bcm.edu), based on work by
  * Ken Kalafus (kkalafus@bcm.tmc.edu) and Andrew Jackson (andrewj@bcm.tmc.edu).
+ *
+ * FIXES AND MINOR CHANGES: Piotr Pawliczek
 */
 
 
@@ -20,7 +23,6 @@ LICENSE.TXT for details.
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
-#include <zlib.h>
 
 #include "PashLib.h"
 #include "PashDebug.h"
@@ -36,28 +38,35 @@ int main(int argc, char** argv) {
 }
 
 int runPash(int argc, char** argv) {
-    printNow();
   PashParameters *pashParams;
   pashParams = parseCommandLine(argc, argv);
 
-
+  printNow();
   pashParams->outputFilePtr = fopen(pashParams->outputFile, "wt");
   if (pashParams->outputFilePtr==NULL) {
     fprintf(stderr, "could not open temporary output file %s\n", pashParams->outputFile);
     fflush(stderr);
     exit(2);
   }
+
   pashParams->verticalFastqUtil = new PashFastqUtil(pashParams->verticalFile, FastaAndQualityScores);
-  if (pashParams->bisulfiteSequencingMapping) {
-    pashParams->verticalFastqUtil->loadSequences(0);
-  } else {
-    pashParams->verticalFastqUtil->loadSequences(1);
-  }
+  pashParams->verticalFastqUtil->loadSequences(1);
+
   fprintf(stderr, "initialized  vertical sequence util\n");
   printNow();
   pashParams->fastaUtilHorizontal = initFastaUtil(pashParams->horizontalFile);
   fprintf(stderr, "initialized  horizontal sequence util\n");
   printNow();
+
+  // print SAM header
+  fprintf(pashParams->outputFilePtr, "@HD\tVN:1.0\n");
+  fprintf(pashParams->outputFilePtr, "@PG\tID:pash3\tPN:Pash\tVN:3.01.03\n");
+  //fprintf(pashParams->outputFilePtr, "@RG\tID:--\tCN:BRL\n");
+  for ( unsigned i = 1;  i <= pashParams->fastaUtilHorizontal->numberOfSequences;  ++i ) {
+    char const * name = pashParams->fastaUtilHorizontal->sequencesInformation[i].sequenceName;
+    if ( strncmp(name, "#RC.pash.", 9) == 0 ) continue;
+    fprintf(pashParams->outputFilePtr, "@SQ\tSN:%s\tLN:%u\n", name, pashParams->fastaUtilHorizontal->sequencesInformation[i].sequenceLength);
+  }
   
   SequenceHash * horizontalSequenceHash = initSequenceHash();
   pashParams->lastVerticalSequenceMapped = 0;

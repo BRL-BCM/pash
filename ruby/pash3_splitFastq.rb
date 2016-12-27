@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+=begin
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+=end
+
 DEBUG=false 
 def myFileOpen(fileName)
     $stderr.puts "Trying to open #{fileName}" if (DEBUG)
@@ -14,10 +20,12 @@ def myFileOpen(fileName)
 end
 
 def usage()
-  $stderr.puts "splitFastq.rb <inputFastqFile> <numberOfSequencesPerSplitFile> <outputFileRootName>
-   Example:
-   splitFastq.rb test.fastq 1000000 test.split.1m
-"
+  $stderr.puts "splitFastq - tool distributed with Pash version 3.01.03"
+  $stderr.puts "Usage:"
+  $stderr.puts "pash3_splitFastq.rb <inputFastqFile> <numberOfSequencesPerSplitFile> <outputFileRootName>"
+  $stderr.puts "Example:"
+  $stderr.puts "pash3_splitFastq.rb test.fastq 1000000 test.split.1m"
+  $stderr.puts ""
   exit(2)
 end
 
