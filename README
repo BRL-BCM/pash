@@ -1,0 +1,187 @@
+Copyright (c) 2004 Baylor College of Medicine.
+Use of this software is governed by a license.  See the included file
+LICENSE.TXT for details.
+
+
+Release notes for the Pash program that implements the Positional Hashing
+method, and ancillary scripts, as described in:
+
+Coarfa, C. and Milosavljevic,A (2008).  Pash 2.0: Scaleable Sequence Anchoring for
+Next-Generation Sequencing Technologies. Pacific Symposium on
+Biocomputing 13:102-113
+
+Kalafus KJ, Jackson AR, and Milosavljevic A (2004). Pash: Efficient
+Genome-Scale Sequence Anchoring by Positional Hashing.
+Genome Research 14: 672-678
+
+1. PASH BUILD INSTRUCTIONS
+==========================
+
+Platforms Supported
+
+These tools were developed under RedHat Linux, for kernel versions up to 2.6.11.
+They would probably require minimal changes to work on other Linux versions of other 
+Unix operating systems as long as gcc, Ruby, and the glib library are available. 
+If you run into problems, please let us know.
+
+1.1 External dependencies
+===========================
+gcc -- the Gnu C++ compiler. We require gcc versions newer than 3.0.2.
+
+GLib C library. This free library is currently available from
+ftp://ftp.gtk.org/pub/glib/
+ 
+
+1.2. Specifying build parameters
+================================
+If necessary, modify the file Makefile.include. You need to edit the following options
+CC=g++ 
+gcc is the default option, you can also try your favorite native C compiler.
+GLIB_INCLUDE=... include options for GLIB on your system. 
+GLIB_INCLUDE=... library location and files for GLIB on your system ...
+For example, if you are using glib-2.0 installed on your system in /usr/apps/glib-2.0,  you would specify 
+GLIB_INCLUDE=-I/usr/apps/glib-2.0/include
+GLIB_LIB=-L/usr/lib -lglib-2.0
+
+By default, Pash is using pkg-config to attempt to determine the compiling option for the glib library.
+
+INSTALLDIR= ... location for the Pash executables ...
+
+COMMON_PASH_COMPILE_FLAGS=-O2 
+You can modify this to specify your favorite compiler optimization flags.
+
+1.3. Building Pash
+==================
+Run 'make'. This will build pash-3.0lx.exe, 
+keyFreq.exe, makeScoreFactorList.exe, and pash2SAM.exe
+in the pash-3.0.1/bin directory.
+
+1.4. Installing Pash
+=====================
+If you specified INSTALLDIR in Makefile.include, run 'make install'. 
+This will copy the Pash executables in the INSTALLDIR directory.
+
+1.5. Installation of Support Tools (Ruby)
+=========================================
+This is necessary to run lffMerger.rb, pashToLff.rb, and buildFastaIndex.rb.
+
+1) Requirements:
+Ruby version 1.8.x is required to run the tools.
+This is freely available from: http://www.ruby-lang.org
+
+2) Shared Ruby Library Installation:
+The programs use several shared libraries for common functions. These libraries
+need to be installed on your system and your $RUBYLIB environmental variable
+updated appropriately, so ruby can find the libraries at runtime.
+
+For example, from the directory where you untarred the Pash distribution:
+    > mkdir -p ~/myRubyLibs
+    > cp -R rubyLib/* ~/myRubyLibs
+    > export RUBYLIB=~/myRubyLibs:$RUBYLIB
+You would want to add the 'export' command to your .bash_profile or analogous
+file. You can use some other location for ~/myRubyLibs as long as you have write
+permission and it is in your $RUBYLIB environmental variable.
+
+3) Ruby Tool Installation:
+Make the tools found in rubyBin executable. For example:
+    chmod 555 lffMerger.rb pashToLff.rb
+Put the tools found in rubyBin/ somewhere in your $PATH.
+
+
+2. RUNNING PASH
+===============
+
+2.1. Use Pash to compare the sequences.
+Pash will produce temporary files, which may be quite large (several gigabytes).
+Use the -S option to specify the temporary files directory.
+
+Run pash-3.0lx.exe with no parameters for a full description of what the different
+options mean.
+To run Pash, one needs to specify a number of diagonals exceeding the maximum length of a read.
+The number of diagonals corresponds to the size of an alignment matrix for each read.
+The reads format accepted by Pash 3.0 is FASTQ.
+Note that for best performance, pash 3.0 needs to use a list of overrrepresented kmers. We describe in section 2.3 of this help how to build one.
+
+a. Comparing reads with a genome performing regular mapping
+    pash-3.0lx.exe -h ref.fa -v myReads.fastq -G 6 -k 13 -n 21 -o output2.txt -s 30 -d 800 -S .
+
+b. Comparing bisulfite-sequencing reads with a genome  
+First, a target genome is processd to generate a genome suitable for bisulfite sequencing mapping.
+    getRCChrom.rb ref.fa ref.dnameth.fa
+    pash-3.0lx.exe -h ref.dnameth.fa -v myReads.fastq -G 1 -k 13 -n 21 -o output2.txt -s 30 -d 800 -S . -B
+
+Pash output is tab-delimited text.  Each line indicates a match that was found.
+The text fields in each line are:
+chromosome chromStart chromStop query qStart qEnd strand matches mismatches gaps gap_bases number_of_blocks blocks_sizes_list  chromosome_block_starts_list query_block_start_list
+numberOfBasePairVariants listOfBasePairVariants(positions/allele/quality)
+For mapping of bisulfite sequencing reads, several specific fields are generated
+cgMethylatedBases listOfCGMethylatedBases(position/quality) chgMethylatedBases listOfCHGMethylatedBases(position/quality) chhMethylatedBases listOfCHHMethylatedBases(position/quality) numberOfConvertedBases listOfConvertedBases(position/quality)
+
+2.2. (optional) Convert Pash output to lff format using pashToLff.rb
+This is necessary if you want to upload the data into the Genboree genome
+browser for visualization (www.genboree.org).
+See:
+http://www.genboree.org/java-bin/uploadFormatHelp.jsp
+for an explaination of the lff format.
+
+2.3.  Essential for performance!  Use a ignore list of overrepresented kmers
+Pash can generate a list of kmers and their occurence frequency for a reference genome. The command is keyFreq.exe.
+An example usage to generate the list of 13-21 gapped kmers is:
+
+keyFreq.exe -o ref.13.21.kf  -p 111011011000110101011 ref.fa 
+
+To generate the ignore list in a human-readable form, use the -h flag
+
+keyFreq.exe -h -o ref.13.21.kf.h  -p 111011011000110101011 ref.fa 
+
+Next, an ignore list can be generated using the command makeIgnoreList.exe, restricting 
+only kmers that have a unique occurence in the reference to be used as seeds.
+
+makeIgnoreList.exe -i ref.13.21.kf -o ref.13.21.c1.il -c 1
+
+For mapping against mammalian size genomes, we typically build a kmer histogram, and set a kmer limit in the makeIgnoreList.exe command such that 95% of the genome kmers are considered for possible matches, and only the most overrepresented 5% are discarded.
+
+Finally, Pash can use the ignore list with the command option -L
+
+pash-3.0lx.exe -h ref.fa -v myReads.fastq -G 6 -k 13 -n 21 -o output2.txt -s 30 -d 800 -S . -L ref.13.21.c1.il 
+
+3. CONVERTING PASH OUTPUT TO THE SAM FORMAT.
+
+The utility pash2SAM.exe converts pash mappings to the emerging Sequence Alignment Map (SAM) format. If you run it without
+any parameters you will get a list of the available options.
+
+pash2SAM.exe -f myReads.fastq -p output2.txt -S output2.sam -s sample -C center -r ref.chroms
+
+4. Pash options
+
+A list of all Pash options can be obtained by running pash-3.0lx.exe without any arguments, or with the --help option
+
+Pash version 3.0
+Usage:
+Pash.exe
+ --verticalInput         | -v <verticalFile>  Vertical sequence as a fasta input file with full path; if file ends
+                              in '.fof', it is assumed the named file contains a list of Fasta files
+ --horizontalInput       | -h <horizontalFile> Horizontal sequence: as a fasta input file with full path; if file ends
+                              in '.fof', it is assumed the named file contains a list of Fasta files
+ --diagonals             | -d <number of diagonals> 
+ --patternWeight         | -k <pattern weight> Number of sampled positions in the sampling pattern
+ --patternLength         | -n total length of sampling pattern, including unsampled positions
+ --samplingPattern       | -m sampling pattern (e.g. 11011 would sample the two positions, skip
+                              one position, then sample the next two
+ --verticalWordOffset    | -G <vertical word offset gap - must be a multiple of diagonal offset gap>
+ --outputFile            | -o <output file name>
+ --score                 | -s <scoreCutoff>
+ --gzip                  | -z  request gzip-ed output (default is text)
+ --scratch               | -S Scratch directory location 
+ --indexMemory           | -M index of the vertical sequence hash in MB(default 1024)
+ --ignoreList            | -L ignore the kmers present in the ignore list file
+ --maxMappings           | -N maximum number of mappings per read
+ --topPercent            | -P top percent from the best alignment score to be reported for each read; use numbers in the interval 0-100; default 1
+ --bisulfiteSeq          | -B perform mapping of bisulfite sequencing reads
+ --highSensitivity       | -0 run pash in high-sensitivity mode 
+ --mediumSensitivity     | -1 run pash in medium-sensitivity mode (default setting)
+ --lowSensitivity        | -2 run pash in low-sensitivity mode 
+ --fastMode              | -3 run pash in fast mode 
+ --keepHashedKmersPercent| -K percent amount of hashed kmers to keep; this value should be between 90 and 100; default is 99 
+ --help print usage info and exit
+
