@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 #ifndef ARJ_BOOLEAN
 #define ARJ_BOOLEAN
@@ -38,12 +39,12 @@ LICENSE.TXT for details.
 /******************************************************
  * FUNCTION: BOOLSTR
  *
- * Usage   : BOOLSTR(var)
+ * Usage   :ï¿½BOOLSTR(var)
  * Function:
- *           Returns string "TRUE" or "FALSE" depending on whether value passed
+ *         ï¿½ï¿½Returns string "TRUE" or "FALSE" depending on whether value passed
  *           is true or false, in terms of C's view on this.
- * Returns :  "TRUE" or "FALSE"
- * Args    :  variable
+ * Returns : ï¿½"TRUE" or "FALSE"
+ * Args    : ï¿½variable
  */
 #define BOOLSTR(x) (x) ? "TRUE" : "FALSE"
 

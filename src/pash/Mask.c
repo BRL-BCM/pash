@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 /************************************************************************
  * Mask.c
@@ -12,9 +13,11 @@ LICENSE.TXT for details.
  ************************************************************************/
 
 #include <stdio.h>
- #include <glib.h>
+#include <glib.h>
 #include "pashtypes.h"
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "byte.h"
 #include "Pattern.h"
 #include "Mask.h"
@@ -202,58 +205,85 @@ void tenOfSixteen(byte *mask)
 } // tenOfSixteen
 
 
-/** Generate the sampling pattern based on the user's specification.
-\note If a user specifies pattern length and weight but not the pattern,
-   assign a default pattern if available, or pick a random one.
-@return  0 (always succeeds)
+/** Sets one of the predefined patterns and returns 0 or
+ * returns 1 if there is no default pattern for given parameters.
 @param maskLen - size of the sampled word, like the "model" of patternhunter
 @param keyLen - number of bases used, like the "weight" of patterhunter
 \par SIDE EFFECTS
- <ul> <li>  memory allocated for mask
- <li> values of mask initialized
  <li> for keyLen of 9, 10, 11, 12, and 13 use patterns from PatternHunter or Choi et al.
- <li> if keyLen==0 or maskLen==0 use patternhunter 11 of 18 (keyLen and  maskLen are changed appropriately) </ul>
+ <li> for 11 of 18 (keyLen and  maskLen are changed appropriately) </ul>
 */
-int setMask(Mask *mask)
+int setMask_internal(Mask *mask)
 {
-	if( (mask->keyLen==13&&mask->maskLen==21) ||
-	    (mask->keyLen==13&&mask->maskLen==0)  ||
-	    (mask->keyLen==0&&mask->maskLen==21)) {
-		mask->keyLen=13;
-		mask->maskLen=21;
+	if( mask->keyLen==13 && mask->maskLen==21 ) {
 		thirteenOfTwentyone(mask->mask);
-        } else if ( mask->keyLen==14 && mask->maskLen!=14) {
-		mask->keyLen=14;
-		mask->maskLen=21;
+    } else if ( mask->keyLen==14 && mask->maskLen==21 ) {
 		fourteenOfTwentyOne(mask->mask);
-	} else if ( mask->keyLen==12 && mask->maskLen!=12) {
-		mask->keyLen=12;
-		mask->maskLen=18;
+	} else if ( mask->keyLen==12 && mask->maskLen==18 ) {
 		twelveOfEighteen(mask->mask);
-	} else if ( mask->keyLen==9 && mask->maskLen!=9) {
-		mask->keyLen=9;
-		mask->maskLen=15;
+	} else if ( mask->keyLen==9 && mask->maskLen==15 ) {
 		nineOfFifteen(mask->mask);
-	} else if ( mask->keyLen==8 && mask->maskLen!=8) {
-		mask->keyLen=8;
-		mask->maskLen=14;
+	} else if ( mask->keyLen==8 && mask->maskLen==14 ) {
 		eightOfFourteen(mask->mask);
-	}  else 	if ( mask->keyLen==10 && mask->maskLen!=10) {
-		mask->keyLen=10;
-		mask->maskLen=16;
+	} else if ( mask->keyLen==10 && mask->maskLen==16 ) {
 		tenOfSixteen(mask->mask);
-	} else 	if( (mask->keyLen==0 || mask->maskLen==0) ||
-		        (mask->keyLen==11 && mask->maskLen==18)) {
-		mask->keyLen=11;
-		mask->maskLen=18;
+	} else if ( mask->keyLen==11 && mask->maskLen==18 ) {
 		elevenOfEighteen(mask->mask);
 	} else {
-		// generate random pattern to use for the job.  This is untested, and a user has reported some errors when attempting this
-		getPattern(mask->mask, mask->keyLen, mask->maskLen);
+		return 1;
 	}
-	computeOverlapContribution(mask);
 	return 0;
 }
+
+// parse unsigned number, returns -1 if error (non-digit char spotted)
+int parseInt(char const * str)
+{
+	int v = 0;
+	if (! isdigit(str[0]) ) return -1;
+	for ( ;  isdigit(*str);  ++str ) {
+		v *= 10;
+		v += (*str - '0');
+	}
+	if (*str != '\0') return -1; // not EOS
+	return v;
+}
+
+int setMask(char const * pattern, Mask *mask)
+{
+	char maskStr [MAX_MASK_LEN+1];
+	guint32 ii;
+	strncpy(maskStr,pattern, MAX_MASK_LEN);
+	mask->maskLen = strlen(maskStr);
+	for(ii=0; ii<mask->maskLen; ii++) {
+		mask->mask[ii]=0;
+	}
+	mask->keyLen = 0;
+	for(ii=0; ii<mask->maskLen; ii++) {
+		if (maskStr[ii]=='1') {
+			mask->mask[ii]=1;
+			++(mask->keyLen);
+		} else if (maskStr[ii]!='0') {
+			mask->keyLen = 0;
+			break;
+		}
+	}
+	if (mask->keyLen <= 0) {
+		char * ps = strstr(maskStr,"from");
+		if (ps != NULL) {
+			*ps = '\0';
+			mask->keyLen  = parseInt(maskStr);
+			mask->maskLen = parseInt(ps+4);
+			if ( setMask_internal(mask) != 0 ) {
+				mask->keyLen = 0;
+			}
+		}
+	}
+	if (mask->keyLen <= 0) {
+		return 1;
+	}
+	return 0;
+}
+
 
 /**Given a sampling mask, list of matching words, and word offset,
   determines the number and positions of matching bases detected

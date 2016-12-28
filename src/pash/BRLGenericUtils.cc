@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 
 #include <stdio.h>
 #include <string.h>
@@ -21,8 +27,6 @@
 FILE* BRLGenericUtils::openTextGzipBzipFile(char* fileName) {
   char catCommand[2*MAX_FILE_NAME];
   FILE *inputFilePtr;
-  char *gzipCheck; //".gz";
-  char *bzipCheck; // ".bz2";
   
   if (!strcmp( &fileName[strlen(fileName)-3], ".gz")) {
     sprintf(catCommand, "gzip -d -c %s", fileName);
@@ -101,9 +105,8 @@ int BRLGenericUtils::parseCommaSeparatedList(char* commaSeparatedList, char*** s
 int BRLGenericUtils::parseListOfIntegers(guint32* intArray, char* listOfIntegers, int numIntegers) {
   int i;
   int value, index;
-  int startPos, stopPos;
+  int startPos;
   int len;
-  int bufferIndex;
 
   xDEBUG(DEB_PARSE_INTLIST, fprintf(stderr,
                                     "parsing >> %s << for %d integers\n", listOfIntegers, numIntegers));

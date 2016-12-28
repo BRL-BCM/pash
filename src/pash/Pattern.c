@@ -1,7 +1,7 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
 
 
@@ -35,7 +35,7 @@ LICENSE.TXT for details.
 /******************************************************
  * FUNCTION: getPattern
  *
- * Usage   : getPattern(kmerSize, rangeSize) 
+ * Usage   : getPattern(kmerSize, rangeSize)ï¿½
  *
  * generate a random sampling mask
  *

@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 /******************************************************
  * NAME: FixedHashKey.c
@@ -14,7 +15,7 @@ LICENSE.TXT for details.
  * bases, not bits.
  *
  * REQUIRES:
- *  glib library (GTK+, multiplatform C library)
+ * ï¿½glib library (GTK+, multiplatform C library)
  *  boolean.h and byte.h for data-type standardization.
  * *
  * AUTHOR: Andrew R. Jackson (andrewj@bcm.tmc.edu)
@@ -126,7 +127,7 @@ int initScoreFactorList(ScoreFactorList *list, FILE *scoreFactorFile,
 	list->buff=(ScoreFactorType*) malloc(list->capacity * sizeof(ScoreFactorType));
 	if(list->buff==NULL)
 	{
-		fprintf(stderr,"memory allocation for score factor list (%d items) failed\n", list->capacity * sizeof(ScoreFactorType));
+		fprintf(stderr,"memory allocation for score factor list (%ld items) failed\n", list->capacity * sizeof(ScoreFactorType));
 		return 1;
 	}
 	list->content=0;

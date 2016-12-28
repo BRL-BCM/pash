@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 #ifndef __fasta_Util_h____
 #define __fasta_Util_h____
 

@@ -1,6 +1,12 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 /* keyFreq.c
 see usage information below in function printUsage()
-*/
+ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -12,6 +18,7 @@ see usage information below in function printUsage()
 #include "FixedHashKey.h"
 #include "err.h"
 #include "PashDebug.h"
+#include "../pash/Mask.h"
 
 #define KEYFREQ_VERSION "0.9"
 
@@ -26,6 +33,7 @@ see usage information below in function printUsage()
 gint32 readable=0;
 /** Array giving sampling pattern.*/
 gint32 *pattern=NULL;
+Mask mask;
 /** Location in argv of output file name.*/
 gint32 outputID=0;
 /** Number of bases in sampling pattern.*/
@@ -38,7 +46,26 @@ guint32 debug=0;
 /** Print usage information*/
 void printUsage() {
 
-	fprintf(stderr,"keyFreq.exe\n\nFor a specified sampling pattern, generates global list of k-mer frequencies\n  from the specified set of sequence files in  .fa format.\n\nUsage: keyFreq.exe -o <outputFile> -p <101001101> <-h> myInput1.fa ...\n  '-p' gives the sampling pattern\n  '-h' if human readable output is desired (otherwise lists in a flat binary format, 4 bytes per key)\n");
+	fprintf(stderr,"keyFreq - tool distributed with Pash version 3.01.03\n"
+			"For a specified sampling pattern, generates global list of k-mer frequencies\n"
+			"from the specified set of sequence files in  .fa format.\n"
+			"Usage: \n"
+			"pash3_keyFreq -o <outputFile> -p <101001101> <-h> myInput1.fa ...\n"
+			"  '-h' if human readable output is desired (otherwise lists in a flat binary format, 4 bytes per key)\n"
+			"  '-p' <sampling pattern> (e.g. 11011 would sample the two positions, skip one position, then\n"
+			"       sample the next two), to use predefined pattern choose one of the following: 8from14, 9from15,\n"
+			"       10from16, 11from18, 12from18, 13from21, 14from21 (default is 12from18)\n"
+			"\n"
+			"Predefined sampling patterns:\n"
+			"  8from14  = 11001001010111\n"
+			"  9from15  = 110110101000111\n"
+			"  10from16 = 1101100011010111\n"
+			"  11from18 = 111010010100110111\n"
+			"  12from18 = 111010110100110111\n"
+			"  13from21 = 111011011000110101011\n"
+			"  14from21 = 111011100101100101111\n"
+			"\n"
+			"\n");
 	return;
 }
 
@@ -71,7 +98,7 @@ static inline void revComp(const char* const seq, char *rev, int len)
 {
 	int ii=0;
 	char c=0;
-  xDEBUG(DEB_REVCOMP, fprintf(stderr, "revcomp for %s\n",seq););
+	xDEBUG(DEB_REVCOMP, fprintf(stderr, "revcomp for %s\n",seq););
 	for(ii=0;ii<len;ii++)
 	{
 		c=toupper(seq[ii]);
@@ -87,19 +114,18 @@ static inline void revComp(const char* const seq, char *rev, int len)
 int main(int argc, char ** argv)
 {
 	guint32 ii=0,   // input file (location in argv of name)
-	           firstFile=0;    // first input file (location in argv of name)
+			firstFile=0;    // first input file (location in argv of name)
 	FILE *output;
 	guint32* freq = NULL;
 	KmerFreqEntry *kfreq=NULL;
 	char *seq=(char*) malloc(17);
 	long freqSum, freqMin, freqMax, freqMean, freqMedian;
 	int nonZeroFreqKmers, firstNonZeroIndex;
-	gboolean isFof;
 	FILE* fofFilePtr;
 	char fofLine[MAX_FOF_LINE];
 	char fileName[MAX_FOF_LINE], singleFastaFileName[MAX_FOF_LINE];
 	int len;
-	
+
 	firstFile=parse(argc, argv);
 	if(debug) printParseResults(argc, argv, firstFile);
 
@@ -123,7 +149,7 @@ int main(int argc, char ** argv)
 
 	/** fprintf(stderr, "kFreq: %ud bytes, freq: %ud bytes\n",
 	power_int(4,patternWeight)*sizeof(KmerFreqEntry), 	power_int(4,patternWeight)*sizeof(guint32));
-	*/
+	 */
 	if (freq == NULL) {
 		die("could not allocate memory for freq\n");
 	}
@@ -134,8 +160,8 @@ int main(int argc, char ** argv)
 		// check if .fof file
 		strcpy(fileName, argv[ii]);
 		len=strlen(fileName);
-		if( len>4 & toupper(fileName[len-4]) == '.' && toupper(fileName[len-3]) == 'F' &&
-		    toupper(fileName[len-2]) == 'O' &&	toupper(fileName[len-1]) == 'F' ) {
+		if( len>4 && toupper(fileName[len-4]) == '.' && toupper(fileName[len-3]) == 'F' &&
+				toupper(fileName[len-2]) == 'O' &&	toupper(fileName[len-1]) == 'F' ) {
 			fofFilePtr = fopen(fileName, "rt");
 			while (fgets(fofLine, MAX_FOF_LINE, fofFilePtr)) {
 				sscanf(fofLine, " %s", singleFastaFileName);
@@ -154,7 +180,7 @@ int main(int argc, char ** argv)
 		freqSum = freqMean = freqMedian = 0;
 		fprintf(stderr, "starting sorting\n");
 		qsort(kfreq, power_int(4, patternWeight), sizeof(KmerFreqEntry),
-		      compareKmerFrequencyEntry);
+				compareKmerFrequencyEntry);
 		fprintf(stderr, "finished sorting\n");
 		// print the sorted list
 		fprintf(stderr, "starting writing human readable output\n");
@@ -188,8 +214,8 @@ int main(int argc, char ** argv)
 		}
 
 		freqMean = freqSum / nonZeroFreqKmers;
-		fprintf(stderr, "Statistics: min=%d max=%d mean=%d median=%d\n",
-		        freqMin, freqMax, freqMean, freqMedian);
+		fprintf(stderr, "Statistics: min=%ld max=%ld mean=%ld median=%ld\n",
+				freqMin, freqMax, freqMean, freqMedian);
 		fprintf(stderr, "finished writing human readable output\n");
 	}
 	if(!readable)  {
@@ -204,16 +230,16 @@ int main(int argc, char ** argv)
 int parse(int argc, char ** argv)
 {
 	int ii=0, jj=0;
-	
+
 	if (argc==1) {
-    printUsage();
-    exit(0);
-  }
-  if (!strcmp(argv[1],"--help")) {
-    printUsage();
-    exit(0);
-  }
-	
+		printUsage();
+		exit(0);
+	}
+	if (!strcmp(argv[1],"--help")) {
+		printUsage();
+		exit(0);
+	}
+
 	for(ii=1;ii<argc;ii++)
 	{
 		if(strcmp("-h",argv[ii])==0) readable=1;
@@ -221,16 +247,16 @@ int parse(int argc, char ** argv)
 		{
 			ii++;
 			if(ii>=argc) die("must specify pattern after -p");
-			patternLen=strlen(argv[ii]);
+			setMask(argv[ii], &mask);
+			patternLen=mask.maskLen;
+			patternWeight = mask.keyLen;
 			if(patternLen==0) die("bad pattern");
 			if(pattern!=NULL) die("attempt to specify pattern twice");
 			pattern=(int*)malloc(sizeof(gint32)*patternLen);
 			if(pattern==NULL) die("pattern memory allocation failed");
 			for(jj=0;jj<patternLen;jj++)
 			{
-				if(argv[ii][jj]=='0') pattern[jj]=0;
-			else if(argv[ii][jj]=='1') {pattern[jj]=1; patternWeight++;}
-				else die("invalid character in pattern");
+				pattern[jj]=mask.mask[jj];
 			}
 			if(patternWeight<=0 || patternWeight > MAXPATTERN) die("Pattern must have between 1 and 15 sampled positions");
 		}
@@ -240,10 +266,21 @@ int parse(int argc, char ** argv)
 			if(ii>=argc) die("must specify output file after -o");
 			outputID=ii;
 		}
-	else if(strcmp("-d",argv[ii])==0) {debug++; fprintf(stderr,"\nkeyFreq.exe version %s.  Debugging activated.\n", KEYFREQ_VERSION);}
+		else if(strcmp("-d",argv[ii])==0) {debug++; fprintf(stderr,"\npash3_keyFreq version 3.01.03.  Debugging activated.\n");}
 		else
 		{
-			if(patternLen==0) die("must specify pattern");
+			if(patternLen==0) {
+				/* set default pattern */
+				setMask("12from18", &mask);
+				patternLen=mask.maskLen;
+				patternWeight = mask.keyLen;
+				pattern=(int*)malloc(sizeof(gint32)*patternLen);
+				if(pattern==NULL) die("pattern memory allocation failed");
+				for(jj=0;jj<patternLen;jj++)
+				{
+					pattern[jj]=mask.mask[jj];
+				}
+			}
 			if(outputID==0) die("must specify output file");
 			if(patternLen > BUFFSIZE) die("pattern length greater than size of input buffer; use a shorter pattern or recompile with increased BUFFSIZE");
 			return ii;
@@ -290,7 +327,7 @@ static inline int readInputFile(FILE *input, int *mode, charbuff *readBuff, char
 		}
 		if(readBuff->content==0) return 1;	// no more sequence in file
 		nextChar=readBuff->buff[readBuff->pos];
-	if(*mode==NEWLN && nextChar=='>') {*mode=DEFLINE; readBuff->pos++; return 1;}
+		if(*mode==NEWLN && nextChar=='>') {*mode=DEFLINE; readBuff->pos++; return 1;}
 		if(*mode==NEWLN && nextChar!='>') {*mode=SEQ;}
 		if(nextChar=='\n') {*mode=NEWLN;}
 		if(*mode==SEQ && nextChar!='\0') {seqBuff->buff[seqBuff->content]=nextChar; seqBuff->content++;}
@@ -309,16 +346,16 @@ void processInputFile(const char * inputName, guint32 *freq, KmerFreqEntry* kfre
 {
 	int mode=NEWLN;	// type of data encountered at end of last read
 	guint32 jj=0,   // position in input buffer
-	           kk=0,   // position in sampling pattern
-	              pos=0,  // base position in current word
-	                       badWord=0,      // set to 1 if current word contains bad characters
-	                       badReverseWord=0;      // set to 1 if current reverse word contains bad characters
+			kk=0,   // position in sampling pattern
+			pos=0,  // base position in current word
+			badWord=0,      // set to 1 if current word contains bad characters
+			badReverseWord=0;      // set to 1 if current reverse word contains bad characters
 	charbuff readBuff, seqBuff;
 	FILE *input=NULL;
 	char seq[17], revseq[17], rev[17];
 	char currentBase;
 	char currentRevBase;
-	
+
 	guint32 key;  // hash key for current word
 
 	readBuff.buff=(char*) calloc(BUFFSIZE,sizeof(char));
@@ -342,8 +379,8 @@ void processInputFile(const char * inputName, guint32 *freq, KmerFreqEntry* kfre
 	{
 		if(debug) fprintf(stderr,"%i bytes in input buffer\n%i bytes in sequence buffer\n", readBuff.content, seqBuff.content);
 		if(debug) {for(jj=0; jj<seqBuff.content; jj++) {
-				if(seqBuff.buff[jj]==0) fprintf(stderr,"."); else
-					fprintf(stderr,"%c",seqBuff.buff[jj]);} fprintf(stderr,"\n");}
+			if(seqBuff.buff[jj]==0) fprintf(stderr,"."); else
+				fprintf(stderr,"%c",seqBuff.buff[jj]);} fprintf(stderr,"\n");}
 
 		if( seqBuff.content + 1 > patternLen )
 			for(jj=0;jj<seqBuff.content-patternLen+1;jj++)
@@ -365,12 +402,12 @@ void processInputFile(const char * inputName, guint32 *freq, KmerFreqEntry* kfre
 					}
 					if(pattern[kk]) {
 						if (!(currentBase == 'A' || currentBase == 'C' ||
-									currentBase == 'G' || currentBase=='T') ) {
+								currentBase == 'G' || currentBase=='T') ) {
 							badWord=1;
 						}
 						seq[pos]=currentBase;
 						if (!(currentRevBase == 'A' || currentRevBase == 'C' ||
-									currentRevBase == 'G' || currentRevBase=='T') ) {
+								currentRevBase == 'G' || currentRevBase=='T') ) {
 							badReverseWord=1;
 						}
 						rev[patternWeight-pos-1]=currentRevBase;

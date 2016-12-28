@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 /******************************************************
  * NAME: error.h
@@ -16,7 +17,7 @@ LICENSE.TXT for details.
  * 			 call one of these or make some new wrappers/functions in here.
  *
  * REQUIRES:
- *  glib library (GTK++, multiplatform C library)
+ * ï¿½glib library (GTK++, multiplatform C library)
  *  boolean.h and byte.h for data-type standardization.
  *
  * AUTHOR: Andrew R. Jackson (andrewj@bcm.tmc.edu)
@@ -40,7 +41,7 @@ LICENSE.TXT for details.
 /******************************************************
  * FUNCTION: CROAK
  *
- * Usage   : CROAK(msgStr, fileStr, lineNum)
+ * Usage   :ï¿½CROAK(msgStr, fileStr, lineNum)
  * Function:
  * Returns : [none]
  * Args    : string constant, char*, int
@@ -52,8 +53,8 @@ LICENSE.TXT for details.
  *
  * Usage   : MEM_ALLOC_CROAK()
  * Function:
- * Returns :  [none]
- * Args    :  [none]
+ * Returns : ï¿½[none]
+ * Args    : ï¿½[none]
  */
 #define MEM_ALLOC_CROAK() CROAK("ERROR: Memory allocation failed", __FILE__, __LINE__)
 

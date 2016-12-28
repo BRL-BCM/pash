@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -25,13 +31,11 @@
 int
 HiveHash::markEntry(guint32 key) {
   unsigned long currentBin;
-  guint32 lastValue;
-  int binSize;
   xDEBUG(DEB_MARK_ENTRY, fprintf(stderr, "B markEntry %d %x\n", key, key));
 
   currentBin = (unsigned long) hashSkeleton[key];
   hashSkeleton[key]= (guint32*)(currentBin+1); 
-  xDEBUG(DEB_MARK_ENTRY, fprintf(stderr, "E markEntry %d %d\n", key, (unsigned long)hashSkeleton[key]));
+  xDEBUG(DEB_MARK_ENTRY, fprintf(stderr, "E markEntry %u %lu\n", key, (unsigned long)hashSkeleton[key]));
   
   return 0;
 }
@@ -47,7 +51,6 @@ HiveHash::markEntry(guint32 key) {
 int
 HiveHash::addEntryX(guint32 key, guint32 value, guint32 offset) {
   guint32* currentBin;
-  guint32 lastValue;
   int binSize;
   xDEBUG(DEB_XALLOC, fprintf(stderr, "B addEntryX %d %x --> %d %d\n", key, key, value, offset));
   if (value==0) {
@@ -81,7 +84,7 @@ HiveHash::addEntryX(guint32 key, guint32 value, guint32 offset) {
         fprintf(stderr, "key %d has data: %d (value,offset) pairs: [\n",
                 key, numberOfBinEntries/2);
         for (pos=1; pos<numberOfBinEntries;pos+=2) {
-          fprintf(stderr, "(%d, %d)\t", key, currentBin[pos], currentBin[pos+1]);
+          fprintf(stderr, "(%u, %u)\t", currentBin[pos], currentBin[pos+1]);
         }
         fprintf(stderr,"]\n");
   }
@@ -129,7 +132,7 @@ HiveHash::addEntry(guint32 key, guint32 value, guint32 offset) {
       currentBin = (guint32*) realloc(currentBin, (binSize+2)*sizeof(guint32));
       xDEBUG(DEB_XALLOC, fprintf(stderr, "done reallocating %d --> %d\n", binSize, binSize+2));
       if (currentBin == NULL) {
-        fprintf(stderr, "could not reallocate HiveHash bin from %d to %d bytes\n",
+        fprintf(stderr, "could not reallocate HiveHash bin from %lu to %lu bytes\n",
                 binSize*sizeof(guint32), (binSize+2)*sizeof(guint32));
         return 1;
       } else {
@@ -145,10 +148,10 @@ HiveHash::addEntry(guint32 key, guint32 value, guint32 offset) {
         int numberOfBinEntries;
         int pos;
         numberOfBinEntries = currentBin[0];
-        fprintf(stderr, "key %d has data: %d (value,offset) pairs: [\n",
+        fprintf(stderr, "key %u has data: %d (value,offset) pairs: [\n",
                 key, numberOfBinEntries/2);
         for (pos=1; pos<numberOfBinEntries;pos+=2) {
-          fprintf(stderr, "(%d, %d)\t", key, currentBin[pos], currentBin[pos+1]);
+          fprintf(stderr, "(%u, %u)\t", currentBin[pos], currentBin[pos+1]);
         }
         fprintf(stderr,"]\n");
   }
@@ -164,9 +167,8 @@ HiveHash::addEntry(guint32 key, guint32 value, guint32 offset) {
 void
 HiveHash::checkHash() {
   guint32* currentBin;
-  int numberOfBinEntries, numberOfOffsets, pos;
+  int numberOfBinEntries, pos;
   guint32 key;
-  int offsetIndex, valueIndex;
   for (key=0; key<hashSize; key++) {
     if (hashSkeleton[key] != NULL) {
       currentBin = hashSkeleton[key];
@@ -185,9 +187,8 @@ HiveHash::checkHash() {
 void
 HiveHash::checkHashXX() {
   guint32* currentBin;
-  int numberOfBinEntries, numberOfOffsets, pos;
+  int numberOfBinEntries, pos;
   guint32 key;
-  int offsetIndex, valueIndex;
   for (key=0; key<hashSize; key++) {
     if (hashSkeleton[key] != NULL) {
       currentBin = hashSkeleton[key];
@@ -209,10 +210,9 @@ HiveHash::checkHashXX() {
 void
 HiveHash::dumpHash(FILE *filePtr) {
   guint32* currentBin;
-  int numberOfBinEntries, numberOfOffsets, pos;
+  int numberOfBinEntries, pos;
   guint32 key;
-  int offsetIndex, valueIndex;
-  fprintf(filePtr, "dumping hiveHash %x %p\n", this);
+  fprintf(filePtr, "dumping hiveHash %lx %p\n", reinterpret_cast<long unsigned>(this), this);
   for (key=0; key<hashSize; key++) {
     if (hashSkeleton[key] != NULL) {
       currentBin = hashSkeleton[key];
@@ -239,8 +239,8 @@ HiveHash::getIntListRunner(guint32 key, IntListRunner* listRunner) {
   if (currentBin != NULL) {
     listRunner->left = 2*currentBin[0];
     listRunner->list = currentBin+2;
-    xDEBUG(DEB_GET_RUNNER, fprintf(stderr, "key %d %x runner %p %x size %d list %p\n", 
-         key, key, listRunner, listRunner, currentBin[0], currentBin+2));
+    xDEBUG(DEB_GET_RUNNER, fprintf(stderr, "key %d %x runner %p %lx size %d list %p\n",
+         key, key, listRunner, reinterpret_cast<long unsigned>(listRunner), currentBin[0], currentBin+2));
     xDEBUG(DEB_GET_RUNNER, 
       for (pos=2; pos<=2*currentBin[0];pos+=2) {
         fprintf(stderr, "(%d, %d)\t", currentBin[pos], currentBin[pos+1]);
@@ -280,13 +280,6 @@ HiveHash::HiveHash(int size, guint32 keepKmerPercent) {
 
 /** Destroys a HiveHash object.*/
 HiveHash::~HiveHash() {
-  int key;
-  /*for (key=0; key<hashSize; key++) {
-    if (hashSkeleton[key] != NULL) {
-      free(hashSkeleton[key]);
-    }
-  }
-  */
   free(hashSkeleton);
 }
 
@@ -303,7 +296,7 @@ HiveHash::getMemoryFootprint() {
 */
 void
 HiveHash::printStatistics(FILE* filePtr) {
-  fprintf(filePtr, "Hive hash %p %x; memory footprint %g elements, %gMB\n", this, this,
+  fprintf(filePtr, "Hive hash %p %lx; memory footprint %g elements, %gMB\n", this, reinterpret_cast<long unsigned>(this),
           memoryFootprint, getMemoryFootprint());
   fprintf(filePtr, "number of values: %d number of keys %d\n",
           numberOfHashValues, numberOfKeys);
@@ -323,24 +316,8 @@ int HiveHash::allocateHashMemory() {
   guint32 currentPoolUsed = 0;
   guint32 currentPoolLeft = individualPoolSize-currentPoolUsed;
   // get statistics about the has occupancy
-  double nBins, sumKmers, sumX2Kmers;
   double maxKmers = 0;
   guint32 binSize;
-  
-  /*for (nBins=0, sumKmers=0, key=0; key<hashSize; key++) {
-    guint32 binSize = (unsigned long)hashSkeleton[key];
-    sumKmers+= (double)binSize;
-    sumX2Kmers+= ((double)binSize)*((double)binSize);
-    if (binSize>0) {
-      if (maxKmers<binSize) {
-         maxKmers = binSize;
-      }
-      nBins += 1.0;
-    }
-  }*/
-  double mean ; //= sumKmers*1.0/(nBins*1.0);
-  double stddev ;//= sqrt( sumX2Kmers/nBins - mean*mean);
-  
   
   
   guint32 *kmerFreqHist = (guint32*) malloc(250000*sizeof(guint32));
@@ -379,19 +356,19 @@ int HiveHash::allocateHashMemory() {
   fprintf(stderr, "Total kmer %g total kmer occurances %g\n", nIndividualKmers, nKmerOccurences);
   for(r=0; r<250000; r++) {
     if (kmerFreqHist[r]>0) {
-      fprintf(stderr, "[%d] %d outof %g %d outof %g ====> ",
-              r, kmerFreqHist[r], nIndividualKmers, kmerOccurencesHist[r], nKmerOccurences);
+//      fprintf(stderr, "[%d] %d outof %g %d outof %g ====> ",
+//              r, kmerFreqHist[r], nIndividualKmers, kmerOccurencesHist[r], nKmerOccurences);
       sumIndividualKmers += kmerFreqHist[r];
       sumKmerOccurence += kmerOccurencesHist[r];
-      fprintf(stderr, "%g %g ---> ", sumIndividualKmers, sumKmerOccurence);
+//      fprintf(stderr, "%g %g ---> ", sumIndividualKmers, sumKmerOccurence);
       sumIndividKmersNorm = sumIndividualKmers/nIndividualKmers;
       sumKmerOccurenceNorm = sumKmerOccurence/nKmerOccurences;
-      fprintf(stderr, "[%d]"
-                       "\t%d\t%g\t%g\t||\t"
-                       "\t%d\t%g\t%g\n",
-              r,
-              kmerFreqHist[r], sumIndividualKmers, sumIndividKmersNorm,
-              kmerOccurencesHist[r], sumKmerOccurence, sumKmerOccurenceNorm);
+//      fprintf(stderr, "[%d]"
+//                       "\t%d\t%g\t%g\t||\t"
+//                       "\t%d\t%g\t%g\n",
+//              r,
+//              kmerFreqHist[r], sumIndividualKmers, sumIndividKmersNorm,
+//              kmerOccurencesHist[r], sumKmerOccurence, sumKmerOccurenceNorm);
       if (sumKmerOccurenceNorm>=kmerPercent) {
         threshold = r*2+1;
         break;
@@ -453,7 +430,6 @@ int HiveHash::allocateHashMemory() {
 int
 HiveHash::addEntryXX(guint32 key, guint32 value, guint32 offset) {
   guint32* currentBin;
-  guint32 lastValue;
   guint32 binSize, binEntries;;
   xDEBUG(DEB_ADD_ENTRYXX, fprintf(stderr, "B addEntryXX %d %x --> %d %d\n", key, key, value, offset));
   if (value==0) {

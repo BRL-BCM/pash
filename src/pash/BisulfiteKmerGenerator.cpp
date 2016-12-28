@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <glib.h>
@@ -23,7 +29,6 @@ int BisulfiteKmerGenerator::generateKmerList(char* kmer, guint32* kmerList, int 
     int validKmerIndex = 0;
     bases[kmerSize]='\0';
     // fill in bisulfite base
-    int i;
     int allC, allT;  
     for (crtIndex=0;  crtIndex<kmerSize;
          crtIndex++) {

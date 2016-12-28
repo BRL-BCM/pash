@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,11 +51,9 @@ int PashFastqUtil::loadSequences(int loadReverseComplement) {
     exit(2);
   }
   reverseSequencesAvailable = loadReverseComplement;
-  char currentLine[MAX_LINE_LENGTH], currentDef[MAX_LINE_LENGTH];
   char *buffer = (char*) malloc(sizeof(char)*(DEFAULT_BUFFER_SIZE+5*MAX_LINE_LENGTH));;
   guint32 bufferReadPos = 0; 
   guint32 numCharsRead = 0;
-  guint32 newLinePos = 0;
   guint32 targetChars;
   int endOfFile;
   guint32 bufferIndex;
@@ -133,7 +137,6 @@ int PashFastqUtil::loadSequences(int loadReverseComplement) {
       if (strlen(&buffer[newLineIdx1+1]) <= MAX_READ_SIZE) {
         numberOfSequences++;
         if (availableEntries == numberOfSequences) {
-          guint32 oldAvailableEntries = availableEntries;
           availableEntries = 5*availableEntries/4+1;
           sequenceNames = (char**) realloc(sequenceNames, sizeof(char*)*availableEntries);
           forwardSequences= (char**) realloc(forwardSequences, sizeof(char*)*availableEntries);

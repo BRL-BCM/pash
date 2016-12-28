@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 
 /******************************************************
@@ -25,6 +26,14 @@ LICENSE.TXT for details.
 #ifndef ARJ_PATTERN
 #define ARJ_PATTERN
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 guint8 getPattern(guint8* pattern, guint16 kmerSize, guint16 rangeSize);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

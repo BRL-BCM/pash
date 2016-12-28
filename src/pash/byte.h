@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 #ifndef ARJ_BYTE
 #define ARJ_BYTE
@@ -18,7 +19,7 @@ LICENSE.TXT for details.
  * unsigned.
  *
  * REQUIRES:
- *  glib library (GTK++, multiplatform C library)
+ * ï¿½glib library (GTK++, multiplatform C library)
  *
  * AUTHOR: Andrew R. Jackson (andrewj@bcm.tmc.edu)
  *

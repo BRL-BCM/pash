@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2004 Baylor College of Medicine.
-Use of this software is governed by a license.  See the included file
-LICENSE.TXT for details.
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
 */
+
 
 /******************************************************
  * NAME: FixedHashKey.h
@@ -14,7 +15,7 @@ LICENSE.TXT for details.
  * bases, not bits.
  *
  * REQUIRES:
- *  glib library (GTK+, multiplatform C library)
+ * ï¿½glib library (GTK+, multiplatform C library)
  *  boolean.h and byte.h for data-type standardization.
  * *
  * AUTHOR: Andrew R. Jackson (andrewj@bcm.tmc.edu)
@@ -84,9 +85,9 @@ void destroyScoreFactorList(ScoreFactorList *scoreFactorList);
  * PRIMARY FUNCTION DECLARATIONS
  *****************************************************/
 
-/**   Fills in the preallocated string buffer  with the sequence corresponding to the key provided. */
+/** ï¿½ Fills in the preallocated string buffer  with the sequence corresponding to the key provided. */
 boolean getSeqForKey(guint32 key, guint32 keyLen, char** seq);
-/**   Fills in the preallocated string buffer  with the sequence corresponding to the key provided. */
+/** ï¿½ Fills in the preallocated string buffer  with the sequence corresponding to the key provided. */
 boolean getSeqForKey1(guint32 key, guint32 keyLen, char*seq);
 /******************************************************
  * SUPPLEMENTAL FUNCTION DECLARATIONS (not needed by most programs...gives access to some internals)
@@ -94,12 +95,12 @@ boolean getSeqForKey1(guint32 key, guint32 keyLen, char*seq);
  /******************************************************
  * FUNCTION: getNthBaseBits
  *
- * Usage   : getNthBaseBits(key, 5)
+ * Usage   :ï¿½getNthBaseBits(key, 5)
  * Function:
- *           Returns a gunint32 with just the two bits corresponding to the Nth
+ *         ï¿½ Returns a gunint32 with just the two bits corresponding to the Nth
  *           base in the sequence set to 1. All other bits set to 0.
  * Returns : guint32
- * Args    :  guint32, guint32
+ * Args    : ï¿½guint32, guint32
  *
  * NOW INLINED FOR SPEED (WATCH YOUR *TYPES* THOUGH!): guint32 getNthBaseBits(guint32 key, guint32 n)
  */
@@ -108,9 +109,9 @@ boolean getSeqForKey1(guint32 key, guint32 keyLen, char*seq);
  /******************************************************
  * FUNCTION: setNthBaseBits
  *
- * Usage   : setNthBaseBits(key, 5, T2bits)
+ * Usage   :ï¿½setNthBaseBits(key, 5, T2bits)
  * Function:
- *           Sets the 2 bits corresponding to the Nth base in the sequence to
+ *         ï¿½ Sets the 2 bits corresponding to the Nth base in the sequence to
  *           the provided 2 bits. Returns the new resultant key.
  * Returns : guint32
  * Args    : guint32, guint32, guint32
@@ -122,9 +123,9 @@ boolean getSeqForKey1(guint32 key, guint32 keyLen, char*seq);
 /******************************************************
  * FUNCTION: getNthBase
  *
- * Usage   : getNthBase(key, 5)
+ * Usage   :ï¿½getNthBase(key, 5)
  * Function:
- *           Returns the Nth base (a char) stored in the key.
+ *         ï¿½ Returns the Nth base (a char) stored in the key.
  * Returns : char
  * Args    : guint32, guint32
  *
@@ -168,7 +169,7 @@ static inline guint32 setNthBase(guint32 key, const guint32 n, const char base) 
 @return  TRUE on success, FALSE otherwise.
 @param seq sequence
 @param keyPtr pointer to key
-\note Usage   : getKeyForSeq(seq, &key)
+\note Usage   :ï¿½getKeyForSeq(seq, &key)
 \pre seq != NULL
 */
 static inline boolean getKeyForSeq(const char* const seq, guint32* const keyPtr) {

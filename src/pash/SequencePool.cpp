@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2004-2016 Baylor College of Medicine.
+Use of this software is governed by a license.
+See the included file LICENSE for details.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +40,6 @@ SequencePool::SequencePool() {
     exit(2);
   }
   latestPool = 0;
-  int i;
   poolSkeleton[0].used = 0;
   poolSkeleton[0].capacity = POOL_INCREMENT;
   poolSkeleton[0].sequence = (char*) malloc(sizeof(char)*POOL_INCREMENT);
@@ -49,7 +54,7 @@ SequencePool::~SequencePool() {
   int i;
   xDEBUG(DEB_FREE, fprintf(stderr, "freeing %d pools\n", poolCapacity));
   for (i=0; i<poolCapacity; i++) {
-    xDEBUG(DEB_FREE, fprintf(stderr, "about to free pool %d %x\n", i, poolSkeleton[i].sequence));
+   // xDEBUG(DEB_FREE, fprintf(stderr, "about to free pool %d %x\n", i, poolSkeleton[i].sequence));
     free(poolSkeleton[i].sequence);
   }
   free(poolSkeleton);
